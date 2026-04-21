@@ -1,0 +1,211 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --bg-0: #06060F;
+  --bg-1: #0B0B1A;
+  --bg-2: #101028;
+  --bg-3: #161635;
+
+  --purple: #9D8FFF;
+  --purple-dim: rgba(157,143,255,0.15);
+  --purple-light: #C4BAFF;
+  --pink: #FF7EB3;
+  --amber: #FFB563;
+  --teal: #5EFFD1;
+  --sky: #5EC5FF;
+  --rose: #FF6B8A;
+
+  --grad-purple: linear-gradient(135deg, #9D8FFF 0%, #FF7EB3 100%);
+  --grad-warm: linear-gradient(135deg, #FFB563 0%, #FF6B8A 100%);
+  --grad-cool: linear-gradient(135deg, #5EFFD1 0%, #5EC5FF 100%);
+  --grad-deep: linear-gradient(180deg, #9D8FFF 0%, #5EC5FF 100%);
+
+  --text-0: #FFFFFF;
+  --text-1: #E8E8FF;
+  --text-2: #9090BB;
+  --text-3: #505078;
+
+  --border: rgba(255,255,255,0.07);
+  --border-glow: rgba(157,143,255,0.3);
+
+  --shadow: 0 8px 40px rgba(0,0,0,0.5);
+  --shadow-glow: 0 0 60px rgba(157,143,255,0.12);
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: #02020C;
+  color: var(--text-1);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow: hidden;
+}
+
+/* ======== KEYFRAME ANIMATIONS ======== */
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInScale {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(-8px); }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(40px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes slideDown {
+  from { transform: translateY(-40px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes slideLeft {
+  from { transform: translateX(60px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes slideRight {
+  from { transform: translateX(-60px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  33% { transform: translateY(-18px) rotate(1deg); }
+  66% { transform: translateY(-8px) rotate(-1deg); }
+}
+
+@keyframes floatB {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  33% { transform: translateY(14px) rotate(-2deg); }
+  66% { transform: translateY(6px) rotate(2deg); }
+}
+
+@keyframes blob {
+  0%, 100% { border-radius: 58% 42% 35% 65% / 55% 32% 68% 45%; }
+  25% { border-radius: 32% 68% 62% 38% / 48% 58% 42% 52%; }
+  50% { border-radius: 48% 52% 30% 70% / 35% 65% 60% 40%; }
+  75% { border-radius: 65% 35% 52% 48% / 62% 28% 72% 38%; }
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.06); opacity: 0.85; }
+}
+
+@keyframes glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(157,143,255,0.3), 0 0 60px rgba(157,143,255,0.1); }
+  50% { box-shadow: 0 0 40px rgba(157,143,255,0.6), 0 0 100px rgba(157,143,255,0.2); }
+}
+
+@keyframes shimmer {
+  from { background-position: -400px center; }
+  to { background-position: 400px center; }
+}
+
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateY(0) scale(1); }
+  40% { transform: translateY(-14px) scale(1.05); }
+  60% { transform: translateY(-8px) scale(1.02); }
+}
+
+@keyframes typewriter {
+  from { width: 0; }
+  to { width: 100%; }
+}
+
+@keyframes blink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+
+@keyframes particleRise {
+  0% { transform: translateY(0) scale(1) rotate(0deg); opacity: 0.8; }
+  100% { transform: translateY(-900px) scale(0.2) rotate(720deg); opacity: 0; }
+}
+
+@keyframes ripple {
+  0% { transform: scale(0); opacity: 0.6; }
+  100% { transform: scale(3); opacity: 0; }
+}
+
+@keyframes waveFlow {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+@keyframes calendarPop {
+  from { transform: scale(0) rotate(-10deg); opacity: 0; }
+  to { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+@keyframes moodFloat {
+  0% { transform: translateY(0) scale(1) rotate(0deg); opacity: 1; }
+  80% { opacity: 0.6; }
+  100% { transform: translateY(-700px) scale(0.4) rotate(180deg); opacity: 0; }
+}
+
+@keyframes orbDrift {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  25% { transform: translate(40px, -60px) scale(1.15); }
+  50% { transform: translate(-30px, -30px) scale(0.9); }
+  75% { transform: translate(20px, 50px) scale(1.1); }
+}
+
+@keyframes orbDrift2 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  25% { transform: translate(-50px, 40px) scale(0.85); }
+  50% { transform: translate(30px, 60px) scale(1.2); }
+  75% { transform: translate(-20px, -40px) scale(0.95); }
+}
+
+@keyframes loadProgress {
+  from { width: 0%; }
+  to { width: 100%; }
+}
+
+@keyframes starTwinkle {
+  0%, 100% { opacity: 0.2; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+
+@keyframes checkDraw {
+  from { stroke-dashoffset: 50; }
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes entryCardIn {
+  from { transform: translateX(-30px) scale(0.96); opacity: 0; }
+  to { transform: translateX(0) scale(1); opacity: 1; }
+}
+
+@keyframes tooltipIn {
+  from { transform: scale(0.8) translateY(8px); opacity: 0; }
+  to { transform: scale(1) translateY(0); opacity: 1; }
+}

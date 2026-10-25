@@ -36,6 +36,9 @@
     timer: null
   });
 
+  // Present only inside the Android APK (see android/). Gives real alarms that fire when the app is closed.
+  const NATIVE = window.PilotNative || null;
+
   let S = load();
   function load() {
     try {
@@ -50,6 +53,7 @@
   }
   function save() {
     try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { toast('Could not save — storage full?'); }
+    if (NATIVE) { clearTimeout(save._t); save._t = setTimeout(syncNative, 400); }
   }
 
   // ---------- Helpers ----------
@@ -84,6 +88,7 @@
     }
   }
   async function share(text) {
+    if (NATIVE) { NATIVE.shareText(text, ''); return; }
     if (navigator.share) { try { await navigator.share({ text }); return; } catch (e) { return; } }
     copy(text);
   }
@@ -385,12 +390,17 @@
 
   // ---------- Notifications ----------
   async function enableNotify() {
+    if (NATIVE) {
+      NATIVE.requestNotify(); S.settings.notify = true; save(); syncNative(); render();
+      toast('Reminders on 🔔 — they work even when the app is closed'); return;
+    }
     if (!('Notification' in window)) { toast('Reminders not supported on this browser'); return; }
     const p = await Notification.requestPermission();
     S.settings.notify = p === 'granted'; save(); render();
     toast(S.settings.notify ? 'Reminders on 🔔' : 'Reminders blocked in browser settings');
   }
   async function notify(title, body) {
+    if (NATIVE) { if (S.settings.notify) NATIVE.notifyNow(title, body); else toast(title); return; }
     if (!S.settings.notify || Notification.permission !== 'granted') { toast(title); return; }
     try {
       const reg = await navigator.serviceWorker?.getRegistration();
@@ -398,9 +408,37 @@
       else new Notification(title, { body, icon: 'icons/icon-192.png' });
     } catch (e) { toast(title); }
   }
+  // Native alarms for the next 7 days: every routine block, water & stretch nudges, focus timer end.
+  function syncNative() {
+    if (!NATIVE) return;
+    const items = [];
+    const now = Date.now();
+    if (S.settings.notify) {
+      for (let i = 0; i < 7; i++) {
+        const dt = new Date(); dt.setHours(0, 0, 0, 0); dt.setDate(dt.getDate() + i);
+        const base = dt.getTime();
+        const add = (min, title, body) => { const at = base + min * 60e3; if (at > now) items.push({ at, title, body }); };
+        for (const b of blocks(dt)) add(b.start, `${b.icon} ${b.title}`, b.tip);
+        for (const h of [11, 15.5, 17, 20]) add(h * 60, '💧 Water check', 'One full glass now. Tap to log it.');
+        if (isWorkday(dt)) for (const h of [12, 16]) add(h * 60, '🧘 Stand & stretch', 'Shoulders, neck, wrists. Look 20 ft away for 20 sec.');
+      }
+    }
+    if (S.timer && S.timer.endsAt > now) {
+      items.push({ at: S.timer.endsAt, title: S.timer.mode === 'focus' ? '🎯 Focus done!' : '☕ Break over', body: S.timer.mode === 'focus' ? 'Take 10. Stand up, water, eyes off the screen.' : 'Back to it — one task.' });
+    }
+    items.sort((a, b) => a.at - b.at);
+    try { NATIVE.schedule(JSON.stringify(items.slice(0, 200))); } catch (e) { /* bridge unavailable */ }
+  }
+
   function tick() {
     const d = day();
     const { list, n } = currentBlock();
+    if (NATIVE) {
+      // Alarms handle every reminder; here we only finish an expired timer.
+      if (S.timer && Date.now() >= S.timer.endsAt) { if (S.timer.mode === 'focus') d.focusMin += S.timer.mins; S.timer = null; save(); if (tab === 'today' || tab === 'health') render(); }
+      renderHeader();
+      return;
+    }
     for (const b of list) {
       if (n >= b.start && n < b.start + 5 && !d.fired[b.id]) { d.fired[b.id] = 1; save(); notify(`${b.icon} ${b.title}`, b.tip); }
     }
@@ -677,12 +715,12 @@
       </section>
 
       <section class="card">
-        <h3>Install on your phone</h3>
-        <div class="small">
+        <h3>${NATIVE ? 'Reminders' : 'Install on your phone'}</h3>
+        ${NATIVE ? `<div class="small">You're on the Android app ✓ Reminders are real alarms and fire even when Pilot is closed. If they don't arrive, check Settings → Apps → Pilot → Notifications, and turn off battery optimisation for Pilot.<br><br><span class="muted">Fully offline. Pilot has no internet permission and can't read contacts, location, photos or files. Backup uses the share sheet; save it to Drive or WhatsApp yourself.</span></div>` : `<div class="small">
           <b>Android (Chrome):</b> open the app link → ⋮ menu → <i>Install app</i> / <i>Add to Home screen</i>.<br>
           <b>iPhone (Safari):</b> open the link → Share → <i>Add to Home Screen</i>. Open it from the icon, then tap 🔔 to allow reminders (iOS 16.4+).<br><br>
           <span class="muted">Works fully offline. No sign-up, no AI credits, no access to contacts, location, photos or anything else on your phone. Reminders fire while the app is open or recently used — keep it pinned for best results.</span>
-        </div>
+        </div>`}
       </section>`;
   }
 
@@ -846,6 +884,7 @@
         toast(`${lines.length} task${lines.length === 1 ? '' : 's'} created`); break;
       }
       case 'export': {
+        if (NATIVE) { NATIVE.shareText(JSON.stringify(S), `pilot-backup-${todayKey()}.json`); break; }
         const blob = new Blob([JSON.stringify(S, null, 2)], { type: 'application/json' });
         const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `pilot-backup-${todayKey()}.json`; a.click();
         setTimeout(() => URL.revokeObjectURL(a.href), 1000); break;
@@ -898,8 +937,21 @@
     say(v); setTimeout(() => $('#say')?.focus(), 50);
   });
 
+  // Android back button: close a sheet, then go back to Today, then leave the app.
+  window.pilotBack = () => {
+    if ($('#sheet')) { closeSheet(); return true; }
+    if (tab !== 'today') { tab = 'today'; render(); window.scrollTo(0, 0); return true; }
+    return false;
+  };
+  window.pilotResume = () => { tick(); if (tab !== 'bot' && !$('#sheet')) render(); };
+
   // ---------- Boot ----------
   if ('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('sw.js').catch(() => {});
+  if (NATIVE) {
+    // First launch of the APK: turn reminders on and ask Android for notification permission.
+    if (!S.settings.nativeInit) { S.settings.nativeInit = true; S.settings.notify = true; NATIVE.requestNotify(); save(); }
+    syncNative();
+  }
   render();
   tick();
   setInterval(tick, 20e3);

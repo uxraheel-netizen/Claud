@@ -20,7 +20,18 @@ A personal productivity and health bot that you install on your phone as an app.
 
 **Reminders:** tap 🔔 to allow notifications. You'll get a reminder at the start of each block, water nudges and hourly stretch reminders during office time. They fire while the app is open or recently used, because there's no server to push them.
 
-## Put it on your phone
+## Android app (APK)
+
+**Download `android/Pilot.apk`** and open it on your phone. Android will ask you to allow installing from this source; allow it once, then tap Install.
+
+- On first open, allow notifications. Reminders are real Android alarms: they fire at every routine block, for water and stretch nudges, and when the focus timer ends, **even when the app is closed**. They also survive a reboot.
+- If a reminder doesn't arrive, go to Settings → Apps → Pilot → Battery and set it to *Unrestricted*. Some phones, like Xiaomi, Oppo and Vivo, kill background alarms otherwise.
+- The APK has **no internet permission**. It only uses notifications, alarms and vibration.
+- Backup uses the share sheet; send the file to yourself on WhatsApp or Drive.
+
+To rebuild it after changing the web app: `android/build.sh`. It uses Ubuntu's Android tools, and the command at the top of the script lists them. Keep `android/pilot-release.keystore`: every update must be signed with the same key, or Android makes you uninstall first, which deletes your data.
+
+## Put it on your phone (web version, any phone incl. iPhone)
 
 The app is plain static files (HTML, CSS and JS) with no build step. Host this folder anywhere that serves HTTPS:
 

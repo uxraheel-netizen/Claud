@@ -5,11 +5,12 @@ set -euo pipefail
 cd "$(dirname "$0")"
 ANDROID_JAR=${ANDROID_JAR:-/usr/lib/android-sdk/platforms/android-23/android.jar}
 OUT=build
-rm -rf "$OUT" && mkdir -p "$OUT/classes" "$OUT/assets/www/icons" "$OUT/gen"
+rm -rf "$OUT" && mkdir -p "$OUT/classes" "$OUT/assets/www/icons" "$OUT/assets/www/fonts" "$OUT/gen"
 
 # Web app goes in as assets (service worker isn't used inside the APK).
 cp ../index.html ../styles.css ../app.js ../manifest.webmanifest "$OUT/assets/www/"
 cp ../icons/* "$OUT/assets/www/icons/"
+cp ../fonts/*.woff2 "$OUT/assets/www/fonts/"
 
 aapt package -f -m -J "$OUT/gen" -M AndroidManifest.xml -S res -I "$ANDROID_JAR"
 javac -nowarn -Xlint:-options --release 8 -classpath "$ANDROID_JAR" -d "$OUT/classes" \

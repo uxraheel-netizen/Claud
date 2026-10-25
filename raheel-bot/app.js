@@ -461,159 +461,230 @@
   function timerText() {
     if (!S.timer) return '';
     const left = Math.max(0, S.timer.endsAt - Date.now());
-    return `${S.timer.mode === 'focus' ? '🎯 Focus' : '☕ Break'} · ${Math.floor(left / 60e3)}:${String(Math.floor((left % 60e3) / 1000)).padStart(2, '0')} left`;
+    return `${S.timer.mode === 'focus' ? 'Focus' : 'Break'} ${clockLeft()}`;
   }
+  function clockLeft() {
+    const left = S.timer ? Math.max(0, S.timer.endsAt - Date.now()) : 50 * 60e3;
+    return `${Math.floor(left / 60e3)}:${String(Math.floor((left % 60e3) / 1000)).padStart(2, '0')}`;
+  }
+
+  // ---------- Icons (inline, offline) ----------
+  const ICONS = {
+    sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+    moon: '<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>',
+    car: '<rect x="3" y="10" width="18" height="7" rx="2"/><path d="M5 10l2-5h10l2 5"/><circle cx="7.5" cy="17.5" r="1.5"/><circle cx="16.5" cy="17.5" r="1.5"/>',
+    cup: '<path d="M17 8h1a4 4 0 0 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4z"/><path d="M6 2v3M10 2v3M14 2v3"/>',
+    doc: '<path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M8 13h8M8 17h5"/>',
+    users: '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/>',
+    target: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/>',
+    food: '<path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2M7 2v20M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"/>',
+    calendar: '<rect x="3" y="4" width="18" height="18" rx="3"/><path d="M16 2v4M8 2v4M3 10h18"/>',
+    search: '<circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>',
+    check: '<path d="M20 6L9 17l-5-5"/>',
+    laptop: '<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M2 20h20"/>',
+    heart: '<path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21l7.8-7.5 1-1.1a5.5 5.5 0 0 0 0-7.8z"/>',
+    walk: '<circle cx="13" cy="4" r="2"/><path d="M9 22l3-7 3 3v4M7 12l3-4 4 1 3 3M10 8l-1 5"/>',
+    bell: '<path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0"/>',
+    clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+    lock: '<rect x="5" y="11" width="14" height="10" rx="3"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>',
+    star: '<path fill="currentColor" stroke="none" d="M12 2l3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 17.8 5.8 21l1.2-6.8-5-4.9 6.9-1z"/>',
+    drop: '<path d="M12 2.7l5.7 5.6a8 8 0 1 1-11.4 0z"/>',
+    flame: '<path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.4-.5-2-1-3-1.1-2.1-.2-4 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.2.4-2.3 1-3.2.4 1.6 1.4 2.7 2.5 2.7z"/>',
+    plus: '<path d="M12 5v14M5 12h14"/>',
+    chat: '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
+    home: '<path d="M3 10l9-7 9 7v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/>',
+    sliders: '<path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/>',
+    share: '<path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v13"/>',
+    copy: '<rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>',
+    send: '<path d="M22 2L11 13M22 2l-7 20-4-9-9-4z"/>',
+    arrow: '<path d="M5 12h14M12 5l7 7-7 7"/>',
+    chev: '<path d="M9 18l6-6-6-6"/>',
+    edit: '<path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/>',
+    pulse: '<path d="M22 12h-4l-3 9L9 3l-3 9H2"/>'
+  };
+  const ic = (name, size = 22) => `<svg class="ic" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[name] || ICONS.sun}</svg>`;
+  const BLOCK_ICON = {
+    wake: 'sun', commute: 'car', settle: 'cup', notion: 'doc', assign: 'users', deep: 'target', lunch: 'food',
+    afternoon: 'calendar', qa: 'search', wrap: 'check', home: 'car', dinner: 'food', personal: 'laptop',
+    fiance: 'heart', wind: 'moon', 'w-wake': 'sun', 'w-move': 'walk', 'w-free': 'laptop', 'w-lunch': 'food',
+    'w-rest': 'cup', 'w-review': 'calendar', 'w-walk': 'walk', 'w-fiance': 'heart', 'w-wind': 'moon'
+  };
+  const blockIcon = (b) => BLOCK_ICON[b.id] || 'sun';
+  const AV_COLORS = ['#ffd84d', '#c85a2b', '#2b9be0', '#7b6cff', '#3ecf9a', '#ff8fb1'];
+  const initials = (n) => n.split(' ').map((p) => p[0]).slice(0, 2).join('').toUpperCase();
+  function avatar(m, i = 0, size = 40) {
+    if (m.id === 'me') return `<span class="av grad" style="width:${size}px;height:${size}px">${initials(S.settings.name)}</span>`;
+    const idx = Math.max(0, S.team.indexOf(m));
+    return `<span class="av" style="width:${size}px;height:${size}px;background:${AV_COLORS[(idx + i) % AV_COLORS.length]}">${esc(initials(m.name))}</span>`;
+  }
+  const bubble = (text) => `<div class="talk"><span class="orb"></span><p class="bubbles"><span class="bub">${esc(text)}</span></p></div>`;
 
   // ---------- Views ----------
   let tab = 'today';
-  let teamFilter = 'all';
+  let showAllDay = false;
+  let addOwner = 'me';
+  let addUrgent = false;
+  const TITLES = { today: 'Today', team: 'Team', bot: 'Pilot', health: 'Health', more: 'Settings' };
+  const NAV = [['today', 'home', 'Today'], ['team', 'users', 'Team'], ['bot', 'chat', 'Ask'], ['health', 'heart', 'Health'], ['more', 'sliders', 'Settings']];
 
   function renderHeader() {
     const h = new Date().getHours();
     const g = h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
-    $('#hello').textContent = `${g}, ${S.settings.name}`;
-    $('#clock').textContent = new Date().toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'short' }) + ' · ' + new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
-    $('#notifyBtn').classList.toggle('on', !!S.settings.notify);
+    $('#title').textContent = TITLES[tab];
+    $('#clock').textContent = `${g}, ${S.settings.name} · ` + new Date().toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' }) + ' · ' + new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+    const nb = $('#notifyBtn');
+    nb.innerHTML = ic('bell', 20);
+    nb.classList.toggle('on', !!S.settings.notify);
+    $('#meAvatar').textContent = initials(S.settings.name);
+  }
+  function renderNav() {
+    $('#nav').innerHTML = NAV.map(([id, icon, label]) => `<button data-tab="${id}" class="${tab === id ? 'active' : ''}" aria-label="${label}">${ic(icon, 20)}<span>${label}</span></button>`).join('');
   }
 
   function viewToday() {
     const { list, cur, next, n } = currentBlock();
     const d = day();
-    const pct = cur ? Math.round(((n - cur.start) / (cur.end - cur.start)) * 100) : 0;
-    const mine = openTasks('me').slice(0, 4);
+    const mine = openTasks('me').slice(0, 3);
     const todayMeet = S.meetings.filter((m) => m.date === todayKey());
+    const upcoming = list.filter((b) => b.end > n);
+    const shown = showAllDay ? list : upcoming.filter((b) => !cur || b.id !== cur.id).slice(0, 4);
+    const left = cur ? cur.end - n : 0;
+    const heroBlock = cur || next;
     return `
-      <section class="card now">
-        <div class="label">${cur ? 'Right now · until ' + fmt(cur.end) : 'Free time'}</div>
-        <div class="title">${cur ? cur.icon + ' ' + esc(cur.title) : next ? 'Next: ' + next.icon + ' ' + esc(next.title) : 'Sleep 😴'}</div>
-        <div class="tip">${esc(cur ? cur.tip : next ? 'Starts at ' + fmt(next.start) : 'Lights out. Tomorrow starts at ' + fmt(toMin(S.settings.wake)))}</div>
-        ${cur ? `<div class="bar"><i style="width:${pct}%"></i></div>` : ''}
-        <div class="spacer"></div>
-        <div class="row wrap">
-          <button class="btn sm" data-act="water">💧 ${d.water}/${S.settings.waterGoal}</button>
-          <button class="btn sm" data-act="focus">${S.timer ? '⏹ Stop timer' : '🎯 Focus 50'}</button>
-          <span class="small" id="timerText">${timerText()}</span>
+      <section class="hero">
+        <div class="hero-top">
+          <span class="gicon">${ic(heroBlock ? blockIcon(heroBlock) : 'moon', 26)}</span>
+          <div class="hero-title">${heroBlock ? esc(heroBlock.title) : 'Time to sleep'}</div>
+          ${cur ? `<button class="round dark ${d.checks[cur.id] ? 'lit' : ''}" data-act="checkCur" aria-label="Mark done">${ic(d.checks[cur.id] ? 'check' : 'star', 20)}</button>` : ''}
+        </div>
+        ${bubble(heroBlock ? heroBlock.tip : 'Lights out. Tomorrow starts at ' + fmt(toMin(S.settings.wake)) + '.')}
+        <div class="hero-bottom">
+          <span class="pill dark">${ic('clock', 18)} ${cur ? dur(left) + ' left' : next ? 'at ' + fmt(next.start) : 'rest'}</span>
+          <span class="pill dark" id="timerPill">${S.timer ? ic('target', 18) + ' <span id="timerText">' + timerText() + '</span>' : ic('lock', 18) + ' ' + (cur ? 'until ' + fmt(cur.end) : 'Up next')}</span>
         </div>
       </section>
 
+      <div class="quick3">
+        <button class="tile" data-act="water"><span class="gicon sm">${ic('drop', 18)}</span><b>${d.water}<small>/${S.settings.waterGoal}</small></b><span>Water</span></button>
+        <button class="tile" data-act="cig"><span class="gicon sm">${ic('flame', 18)}</span><b>${d.cigs.length}<small>/${cigGoal()}</small></b><span>Smoke</span></button>
+        <button class="tile" data-act="focus"><span class="gicon sm">${ic('target', 18)}</span><b>${S.timer ? 'On' : '50'}<small>${S.timer ? '' : 'm'}</small></b><span>${S.timer ? 'Stop' : 'Focus'}</span></button>
+      </div>
+
       <section class="card">
-        <h3>Today's top 3 <small>${isWorkday() ? 'Workday' : 'Weekend'}</small></h3>
-        ${[0, 1, 2].map((i) => `<div class="row" style="margin-bottom:6px"><b class="muted">${i + 1}</b><input class="input" data-top="${i}" placeholder="${['The thing that must ship today', 'Second priority', 'Nice to have'][i]}" value="${esc((d.top3 || [])[i] || '')}"></div>`).join('')}
+        <div class="card-head"><h3>Top 3 today</h3></div>
+        ${[0, 1, 2].map((i) => `<label class="field"><span class="num">${i + 1}</span><input data-top="${i}" placeholder="${['Must ship today', 'Second priority', 'Nice to have'][i]}" value="${esc((d.top3 || [])[i] || '')}"></label>`).join('')}
       </section>
 
-      ${todayMeet.length ? `<section class="card"><h3>Meetings today</h3>${todayMeet.map((m) => `<div class="task"><div class="ttl">🤝 ${esc(m.client)} ${m.time ? '· ' + esc(m.time) : ''}</div><textarea class="input" data-meet="${m.id}" placeholder="Notes & action items…">${esc(m.notes)}</textarea><div class="row" style="margin-top:6px"><button class="btn sm" data-act="meetTasks" data-id="${m.id}">Turn lines into my tasks</button></div></div>`).join('')}</section>` : ''}
+      ${todayMeet.map((m) => `
+        <section class="card">
+          <div class="item-row"><span class="gicon">${ic('calendar', 22)}</span><div class="grow"><div class="item-title">${esc(m.client)}</div><div class="meta">${ic('clock', 16)} ${esc(m.time || 'today')}</div></div></div>
+          <textarea class="soft" data-meet="${m.id}" placeholder="Notes… one action per line (e.g. mridul: fix footer)">${esc(m.notes)}</textarea>
+          <button class="pill light" data-act="meetTasks" data-id="${m.id}">${ic('plus', 16)} Make tasks from notes</button>
+        </section>`).join('')}
 
-      <section class="card">
-        <h3>My tasks <small><button class="btn sm" data-act="addMine">+ Add</button></small></h3>
-        ${mine.length ? mine.map(taskRow).join('') : '<div class="muted small">Nothing assigned to you. Add one or tell the bot "me: …"</div>'}
-      </section>
+      ${mine.length ? `<section class="card"><div class="card-head"><h3>My tasks</h3><button class="pill light" data-act="addMine">${ic('plus', 16)} Add</button></div>${mine.map(taskRow).join('')}</section>` : ''}
 
-      <section class="card">
-        <h3>Schedule <small>${list.filter((b) => d.checks[b.id]).length}/${list.length} done</small></h3>
-        <ul class="timeline">
-          ${list.map((b) => `
-            <li class="${cur && cur.id === b.id ? 'current' : ''} ${d.checks[b.id] ? 'done' : ''}">
-              <span class="t">${fmt(b.start)}</span>
-              <input type="checkbox" data-check="${b.id}" ${d.checks[b.id] ? 'checked' : ''} aria-label="Done">
-              <div><div class="ttl">${b.icon} ${esc(b.title)}</div><div class="d">${esc(b.tip)}</div></div>
-            </li>`).join('')}
-        </ul>
-      </section>`;
+      <div class="section-label"><span>${showAllDay ? 'Full day' : 'Up next'}</span><button class="link" data-act="fullday">${showAllDay ? 'Show less' : 'Full day'}</button></div>
+      ${shown.map((b, i) => `
+        <section class="item ${!showAllDay && i > 1 ? 'faded' : ''} ${d.checks[b.id] ? 'done' : ''} ${cur && cur.id === b.id ? 'now' : ''}">
+          <span class="gicon">${ic(blockIcon(b), 22)}</span>
+          <div class="grow">
+            <div class="item-title">${esc(b.title)}</div>
+            <div class="meta">${ic('clock', 16)} ${fmt(b.start)} · ${dur(b.end - b.start)}</div>
+          </div>
+          <button class="round light ${d.checks[b.id] ? 'lit' : ''}" data-act="toggleBlock" data-id="${b.id}" aria-label="Done">${ic('check', 18)}</button>
+        </section>`).join('') || '<div class="empty">Nothing else today. Rest well.</div>'}`;
   }
 
   function taskRow(t) {
     const o = owner(t.owner);
-    const nextLabel = { todo: 'Start', doing: 'Send to QA', qa: 'Run QA', ready: 'Mark sent', sent: '' }[t.status];
+    const next = { todo: ['Start', 'adv'], doing: ['QA', 'qa'], qa: ['QA', 'qa'], ready: ['Sent', 'adv'] }[t.status];
     return `
       <div class="task">
-        <div class="row">
-          <div class="grow">
-            <div class="ttl">${t.priority === 'high' ? '🔴 ' : ''}${esc(t.title)}</div>
-            <div class="small muted">#${t.id} · ${esc(o.name)}${t.client ? ' · ' + esc(t.client) : ''}</div>
-          </div>
-          <span class="pill ${t.status}">${STATUS_LABEL[t.status]}</span>
-        </div>
-        <div class="row" style="margin-top:6px">
-          ${nextLabel ? `<button class="btn sm ${t.status === 'qa' ? 'primary' : ''}" data-act="${t.status === 'qa' ? 'qa' : 'adv'}" data-id="${t.id}">${nextLabel}</button>` : ''}
-          ${t.status !== 'qa' && t.status !== 'sent' ? `<button class="btn sm" data-act="qa" data-id="${t.id}">QA</button>` : ''}
-          <button class="btn sm" data-act="edit" data-id="${t.id}">Edit</button>
-          <button class="btn sm warn" data-act="del" data-id="${t.id}">✕</button>
-        </div>
+        ${avatar(o, 0, 34)}
+        <button class="grow task-main" data-act="edit" data-id="${t.id}">
+          <span class="item-title sm">${t.priority === 'high' ? '<i class="dot red"></i>' : ''}${esc(t.title)}</span>
+          <span class="meta">${esc(STATUS_LABEL[t.status])}${t.client ? ' · ' + esc(t.client) : ''} · #${t.id}</span>
+        </button>
+        ${next ? `<button class="pill ${t.status === 'qa' ? 'grad' : 'light'}" data-act="${next[1]}" data-id="${t.id}">${next[0]}</button>` : ''}
       </div>`;
   }
 
   function viewTeam() {
     const d = day();
-    const people = [{ id: 'all', name: 'All' }, { id: 'me', name: 'Me' }, ...S.team];
-    const list = teamFilter === 'all' ? openTasks() : openTasks(teamFilter);
+    const briefed = S.team.filter((m) => m.brief);
+    const ready = briefed.filter((m) => openTasks(m.id).length);
     const qaQueue = S.tasks.filter((t) => t.status === 'qa');
     const checked = S.clients.filter((c) => d.notion[c.id]).length;
     return `
-      <section class="card">
-        <h3>Daily brief <small>${S.team.filter((m) => m.brief).map((m) => firstName(m.name)).join(', ')}</small></h3>
-        <div class="muted small">Add tasks below, then send everyone their instructions in one go.</div>
-        <div class="spacer"></div>
-        <button class="btn primary block" data-act="brief">📨 Build today's team messages</button>
+      <section class="hero">
+        <div class="hero-top">
+          <span class="gicon">${ic('users', 26)}</span>
+          <div class="hero-title">Today's brief</div>
+          <button class="round dark" data-act="brief" aria-label="Open brief">${ic('send', 18)}</button>
+        </div>
+        ${bubble(ready.length ? `${ready.length} message${ready.length > 1 ? 's' : ''} ready for ${ready.map((m) => firstName(m.name)).join(', ')}. Tap send to copy or share.` : 'Add tasks for your team below, then send everyone their instructions in one tap.')}
+        <div class="hero-bottom">
+          <span class="pill dark stack">${briefed.map((m) => avatar(m, 0, 30).replace(/>[A-Z]{1,2}</, `>${esc(m.name[0])}<`)).join('')} ${openTasks().filter((t) => t.owner !== 'me').length}</span>
+          <button class="pill dark" data-act="brief">${ic('share', 18)} Send</button>
+        </div>
       </section>
 
-      ${qaQueue.length ? `<section class="card"><h3>🔍 QA queue <small>${qaQueue.length} waiting</small></h3>${qaQueue.map(taskRow).join('')}</section>` : ''}
-
       <section class="card">
-        <h3>Add task</h3>
-        <div class="row">
-          <select class="input" id="tOwner" style="max-width:40%">
-            <option value="me">Me</option>
-            ${S.team.map((m) => `<option value="${m.id}">${esc(firstName(m.name))}</option>`).join('')}
-          </select>
-          <select class="input" id="tPrio" style="max-width:30%"><option value="normal">Normal</option><option value="high">🔴 Urgent</option></select>
+        <div class="card-head"><h3>New task</h3></div>
+        <input class="soft" id="tTitle" placeholder="What needs doing?">
+        <div class="chips">
+          ${[{ id: 'me', name: 'Me' }, ...S.team].map((m) => `<button class="chip ${addOwner === m.id ? 'active' : ''}" data-act="owner" data-id="${m.id}">${esc(firstName(m.name))}</button>`).join('')}
         </div>
-        <div class="spacer"></div>
-        <input class="input" id="tTitle" placeholder="What needs doing?">
-        <div class="spacer"></div>
         <div class="row">
-          <input class="input grow" id="tClient" list="clientList" placeholder="Client (optional)">
+          <input class="soft grow" id="tClient" list="clientList" placeholder="Client">
           <datalist id="clientList">${S.clients.map((c) => `<option value="${esc(c.name)}">`).join('')}</datalist>
-          <button class="btn primary" data-act="addTask">Add</button>
+          <button class="chip ${addUrgent ? 'active red' : ''}" data-act="urgent">Urgent</button>
+          <button class="round black" data-act="addTask" aria-label="Add task">${ic('plus', 20)}</button>
         </div>
-        <div class="small muted" id="hint" style="margin-top:6px"></div>
+        <div class="hint" id="hint"></div>
       </section>
 
-      <div class="chips">${people.map((p) => `<button class="chip ${teamFilter === p.id ? 'active' : ''}" data-filter="${p.id}">${esc(firstName(p.name))} ${p.id !== 'all' ? `· ${openTasks(p.id).length}` : ''}</button>`).join('')}</div>
-      <div class="spacer"></div>
-      <section class="card">
-        <h3>Open tasks <small>${list.length}</small></h3>
-        ${list.length ? list.map(taskRow).join('') : '<div class="muted small">All clear.</div>'}
-      </section>
+      ${qaQueue.length ? `<section class="card"><div class="card-head"><h3>Waiting for your QA</h3><span class="pill grad">${qaQueue.length}</span></div>${qaQueue.map(taskRow).join('')}</section>` : ''}
 
+      <div class="section-label"><span>People</span></div>
+      ${[{ id: 'me', name: 'Me', role: 'Lead · UI/UX · Framer' }, ...S.team].map((m) => {
+        const c = openTasks(m.id).length;
+        return `
+        <button class="item" data-act="person" data-id="${m.id}">
+          ${avatar(m, 0, 52)}
+          <div class="grow">
+            <div class="item-title">${esc(m.name)}</div>
+            <div class="meta">${esc(m.role)}</div>
+          </div>
+          <span class="pill light">${c} ${c === 1 ? 'task' : 'tasks'}</span>
+        </button>`;
+      }).join('')}
+
+      <div class="section-label"><span>Notion sweep · ${checked}/${S.clients.length}</span></div>
       <section class="card">
-        <h3>Notion sweep — clients <small>${checked}/${S.clients.length} checked today</small></h3>
         ${S.clients.map((c) => `
-          <div class="row" style="padding:6px 0">
-            <input type="checkbox" data-notion="${c.id}" ${d.notion[c.id] ? 'checked' : ''}>
-            <span class="grow">${esc(c.name)}</span>
-            <span class="small muted">${openTasks().filter((t) => t.client === c.name).length} open</span>
-            <button class="btn sm" data-act="meet" data-name="${esc(c.name)}">🤝</button>
-            <button class="btn sm warn" data-act="delClient" data-id="${c.id}">✕</button>
-          </div>`).join('') || '<div class="muted small">Add your active clients so the morning sweep becomes a checklist.</div>'}
-        <div class="spacer"></div>
-        <div class="row"><input class="input grow" id="newClient" placeholder="New client name"><button class="btn" data-act="addClient">Add</button></div>
-      </section>
-
-      <section class="card">
-        <h3>Who does what</h3>
-        ${S.team.map((m) => `<div class="small" style="padding:3px 0"><b>${esc(m.name)}</b> — <span class="muted">${esc(m.role)}${m.brief ? '' : ' · not in daily brief'}</span></div>`).join('')}
+          <div class="client">
+            <button class="round light ${d.notion[c.id] ? 'lit' : ''}" data-act="notion" data-id="${c.id}" aria-label="Checked">${ic('check', 18)}</button>
+            <span class="grow item-title sm">${esc(c.name)}</span>
+            <span class="meta">${openTasks().filter((t) => t.client === c.name).length} open</span>
+            <button class="round light sm" data-act="meet" data-name="${esc(c.name)}" aria-label="Log meeting">${ic('calendar', 16)}</button>
+          </div>`).join('') || '<div class="empty">Add your clients — each morning you just tick them off as you check Notion.</div>'}
+        <div class="row" style="margin-top:12px"><input class="soft grow" id="newClient" placeholder="Add client"><button class="round black" data-act="addClient" aria-label="Add client">${ic('plus', 20)}</button></div>
       </section>`;
   }
 
   function viewBot() {
     if (!S.chat.length) S.chat.push({ from: 'bot', text: `Salam ${S.settings.name}! I'm Pilot — I run fully on your phone, offline. ` + nowText() + '\n\nType "help" for everything I can do.', ts: Date.now() });
-    const quick = ['now', 'plan', 'brief', 'tasks', 'water', 'cig', 'focus', 'stats', 'week', 'help'];
+    const quick = ['now', 'plan', 'brief', 'tasks', 'stats', 'week', 'help'];
     return `
-      <div class="quick">${quick.map((q) => `<button class="chip" data-say="${q}">${q}</button>`).join('')}</div>
-      <div class="chat" id="chat">${S.chat.slice(-80).map((m) => `<div class="msg ${m.from}">${esc(m.text)}</div>`).join('')}</div>
+      <div class="chips quick">${quick.map((q) => `<button class="chip" data-say="${q}">${q}</button>`).join('')}</div>
+      <div class="chat" id="chat">${S.chat.slice(-80).map((m) => m.from === 'bot'
+        ? `<div class="msg-row"><span class="orb sm"></span><div class="msg bot">${esc(m.text)}</div></div>`
+        : `<div class="msg me">${esc(m.text)}</div>`).join('')}</div>
       <form class="composer" id="composer">
-        <input class="input grow" id="say" autocomplete="off" placeholder='Try "mridul: fix navbar for Acme !"'>
-        <button class="btn primary" type="submit">Send</button>
+        <input id="say" autocomplete="off" placeholder="Message Pilot…">
+        <button class="round black" type="submit" aria-label="Send">${ic('send', 18)}</button>
       </form>`;
   }
 
@@ -624,133 +695,162 @@
     const since = lc ? Math.round((Date.now() - lc) / 60e3) : null;
     const w = last7();
     const maxC = Math.max(1, ...w.map((x) => (x.d ? x.d.cigs.length : 0)));
+    const sleepLen = toMin(S.settings.wake) + 1440 - sleepMin();
     return `
-      <section class="card">
-        <h3>💧 Water <small>${d.water}/${S.settings.waterGoal} · should be ~${expectedWater()} by now</small></h3>
-        <div class="glasses">${Array.from({ length: S.settings.waterGoal }, (_, i) => `<button class="glass ${i < d.water ? 'full' : ''}" data-glass="${i}" aria-label="Glass ${i + 1}"></button>`).join('')}</div>
-      </section>
-
-      <section class="card">
-        <h3>🚬 Smoking <small>goal ≤ ${g}/day, drops 1 each week</small></h3>
-        <div class="stats">
-          <div class="stat"><b style="color:${d.cigs.length > g ? 'var(--red)' : 'var(--green)'}">${d.cigs.length}</b><span>today</span></div>
-          <div class="stat"><b>${since === null ? '—' : dur(since)}</b><span>since last</span></div>
-          <div class="stat"><b>${g}</b><span>today's limit</span></div>
+      <section class="hero">
+        <div class="hero-top">
+          <span class="gicon">${ic('flame', 26)}</span>
+          <div class="hero-title">Smoking · ${d.cigs.length} of ${g}</div>
+          <button class="round dark" data-act="cig" aria-label="Log a cigarette">${ic('plus', 20)}</button>
         </div>
-        <div class="spacer"></div>
-        <div class="row" style="align-items:flex-end;height:50px;gap:4px">
-          ${w.map((x) => { const c = x.d ? x.d.cigs.length : 0; return `<div class="grow" style="text-align:center"><div style="height:${(c / maxC) * 36}px;background:var(--amber);border-radius:4px 4px 0 0;opacity:.8"></div><div class="small muted">${x.dt.toLocaleDateString(undefined, { weekday: 'narrow' })}</div></div>`; }).join('')}
+        ${bubble(d.cigs.length > g ? 'Over today\'s limit — no guilt. Tomorrow, push each one 15 minutes later.' : 'Craving? It passes in 3–5 minutes. Water + a short walk, then tap "beat it".')}
+        <div class="bars">${w.map((x) => { const c = x.d ? x.d.cigs.length : 0; return `<div><i style="height:${6 + (c / maxC) * 40}px"></i><span>${x.dt.toLocaleDateString(undefined, { weekday: 'narrow' })}</span></div>`; }).join('')}</div>
+        <div class="hero-bottom">
+          <span class="pill dark">${ic('clock', 18)} ${since === null ? 'none yet' : dur(since) + ' since last'}</span>
+          <button class="pill dark" data-act="craving">${ic('check', 18)} Beat it${d.craves ? ' · ' + d.craves : ''}</button>
         </div>
-        <div class="spacer"></div>
-        <div class="row"><button class="btn grow" data-act="cig">Log a cigarette</button><button class="btn good grow" data-act="craving">I beat a craving 💪</button></div>
-        <div class="small muted" style="margin-top:8px">Tip: the 9:20 arrival cig is habit, not need. Replace it with water + a lap around the block for one week and see.</div>
       </section>
 
       <section class="card">
-        <h3>🎯 Focus timer <small>${dur(d.focusMin)} today</small></h3>
-        <div class="row"><button class="btn primary grow" data-act="focus">${S.timer ? '⏹ Stop' : 'Start 50 min'}</button><button class="btn grow" data-act="break">10 min break</button></div>
-        <div class="small" id="timerText" style="margin-top:8px">${timerText()}</div>
+        <div class="card-head"><h3>Water</h3><span class="meta">${d.water} of ${S.settings.waterGoal} · ~${expectedWater()} by now</span></div>
+        <div class="drops">${Array.from({ length: S.settings.waterGoal }, (_, i) => `<button class="drop ${i < d.water ? 'full' : ''}" data-glass="${i}" aria-label="Glass ${i + 1}">${ic('drop', 18)}</button>`).join('')}</div>
       </section>
 
       <section class="card">
-        <h3>💛 Life balance <small>today</small></h3>
-        <div class="row" style="margin-bottom:8px"><span class="grow">Fiancée time <b>${dur(d.fianceMin)}</b> <span class="muted small">/ 2–3h</span></span><button class="btn sm" data-act="fiance" data-m="30">+30m</button><button class="btn sm" data-act="fiance" data-m="60">+1h</button></div>
-        <div class="bar"><i style="width:${Math.min(100, (d.fianceMin / 150) * 100)}%;background:#ff7eb6"></i></div>
-        <div class="spacer"></div>
-        <div class="row" style="margin-bottom:8px"><span class="grow">Personal clients <b>${dur(d.personalMin)}</b> <span class="muted small">/ cap ${dur(S.settings.personalCap)}</span></span><button class="btn sm" data-act="personal" data-m="30">+30m</button><button class="btn sm" data-act="personal" data-m="60">+1h</button></div>
-        <div class="bar"><i style="width:${Math.min(100, (d.personalMin / S.settings.personalCap) * 100)}%;background:${d.personalMin > S.settings.personalCap ? 'var(--red)' : 'var(--blue)'}"></i></div>
+        <div class="card-head"><h3>Focus</h3><span class="meta">${dur(d.focusMin)} today</span></div>
+        <div class="big" id="timerBig">${clockLeft()}</div>
+        <div class="row">
+          <button class="pill ${S.timer ? 'light' : 'grad'} grow" data-act="focus">${S.timer ? 'Stop' : 'Start 50 min'}</button>
+          <button class="pill light grow" data-act="break">Break 10 min</button>
+        </div>
       </section>
 
       <section class="card">
-        <h3>😴 Sleep <small>target ${fmt(sleepMin())} → ${fmt(toMin(S.settings.wake))} (${dur(toMin(S.settings.wake) + 1440 - sleepMin())})</small></h3>
-        <div class="row"><label class="grow"><span class="small muted">Slept at (last night)</span><input class="input" type="time" data-sleep="sleptAt" value="${esc(d.sleptAt)}"></label><label class="grow"><span class="small muted">Woke at</span><input class="input" type="time" data-sleep="wokeAt" value="${esc(d.wokeAt)}"></label></div>
-        <div class="small muted" style="margin-top:8px">Last 30 min before bed: no reels, no work chat. Phone charges outside reach.</div>
+        <div class="card-head"><h3>Life balance</h3></div>
+        <div class="item-row">
+          <span class="gicon sm">${ic('heart', 18)}</span>
+          <div class="grow"><div class="item-title sm">Fiancée · ${dur(d.fianceMin)}</div><div class="meter"><i style="width:${Math.min(100, (d.fianceMin / S.settings.fianceGoal) * 100)}%"></i></div></div>
+          <button class="pill light" data-act="fiance" data-m="30">+30m</button>
+        </div>
+        <div class="item-row">
+          <span class="gicon sm">${ic('laptop', 18)}</span>
+          <div class="grow"><div class="item-title sm">Personal clients · ${dur(d.personalMin)} <span class="meta">/ ${dur(S.settings.personalCap)}</span></div><div class="meter ${d.personalMin > S.settings.personalCap ? 'over' : ''}"><i style="width:${Math.min(100, (d.personalMin / S.settings.personalCap) * 100)}%"></i></div></div>
+          <button class="pill light" data-act="personal" data-m="30">+30m</button>
+        </div>
       </section>
 
       <section class="card">
-        <h3>🧘 Desk reset (2 min)</h3>
-        <div class="small">1. Neck rolls ×5 each way<br>2. Shoulder shrugs ×10<br>3. Wrist stretch 20s each hand (Figma/Framer hands!)<br>4. Stand, reach up, side bends ×5<br>5. 20-20-20: look 20 ft away for 20 sec</div>
+        <div class="card-head"><h3>Sleep</h3><span class="meta">${fmt(sleepMin())} → ${fmt(toMin(S.settings.wake))} · ${dur(sleepLen)}</span></div>
+        <div class="row">
+          <label class="time grow"><span>Slept</span><input type="time" data-sleep="sleptAt" value="${esc(d.sleptAt)}"></label>
+          <label class="time grow"><span>Woke</span><input type="time" data-sleep="wokeAt" value="${esc(d.wokeAt)}"></label>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-head"><h3>2-min desk reset</h3></div>
+        <div class="steps">${['Neck rolls ×5 each way', 'Shoulder shrugs ×10', 'Wrist stretch 20s each hand', 'Stand, reach up, side bends ×5', 'Look 20 ft away for 20 sec'].map((s, i) => `<div><span class="num">${i + 1}</span>${s}</div>`).join('')}</div>
       </section>`;
   }
 
   function viewMore() {
     const s = S.settings;
-    const time = (k, l) => `<label class="grow"><span class="f">${l}</span><input class="input" type="time" data-set="${k}" value="${s[k]}"></label>`;
-    const num = (k, l) => `<label class="grow"><span class="f">${l}</span><input class="input" type="number" min="0" data-set="${k}" value="${s[k]}"></label>`;
-    const dn = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const time = (k, l) => `<label class="set-row"><span>${l}</span><input type="time" data-set="${k}" value="${s[k]}"></label>`;
+    const num = (k, l) => `<label class="set-row"><span>${l}</span><input type="number" min="0" data-set="${k}" value="${s[k]}"></label>`;
+    const dn = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
     return `
-      <section class="card">
-        <h3>My routine</h3>
-        <div class="row">${time('wake', 'Wake')}${time('leave', 'Leave home')}</div>
-        <div class="row">${time('arrive', 'Reach office')}${time('start', 'Start work')}</div>
-        <div class="row">${time('lunchStart', 'Lunch start')}${time('lunchEnd', 'Lunch end')}</div>
-        <div class="row">${time('off', 'Off work')}${time('sleep', 'Sleep')}</div>
-        <span class="f">Workdays</span>
-        <div class="chips">${dn.map((n, i) => `<button class="chip ${s.workdays.includes(i) ? 'active' : ''}" data-wd="${i}">${n}</button>`).join('')}</div>
+      <div class="section-label"><span>Routine</span></div>
+      <section class="card list">
+        ${time('wake', 'Wake up')}${time('leave', 'Leave home')}${time('arrive', 'Reach office')}${time('start', 'Start work')}
+        ${time('lunchStart', 'Lunch starts')}${time('lunchEnd', 'Lunch ends')}${time('off', 'Off work')}${time('sleep', 'Sleep')}
+        <div class="set-row"><span>Workdays</span><div class="days">${dn.map((n, i) => `<button class="${s.workdays.includes(i) ? 'on' : ''}" data-wd="${i}">${n}</button>`).join('')}</div></div>
       </section>
 
-      <section class="card">
-        <h3>Goals</h3>
-        <div class="row">${num('waterGoal', 'Water glasses / day')}${num('cigBaseline', 'Cigs/day when you started')}</div>
-        <div class="row">${num('personalCap', 'Personal work cap (min)')}${num('fianceGoal', 'Fiancée time goal (min)')}</div>
+      <div class="section-label"><span>Goals</span></div>
+      <section class="card list">
+        ${num('waterGoal', 'Water glasses')}${num('cigBaseline', 'Cigarettes/day at start')}${num('personalCap', 'Personal work cap (min)')}${num('fianceGoal', 'Fiancée time goal (min)')}
       </section>
 
-      <section class="card">
-        <h3>Team</h3>
+      <div class="section-label"><span>Team</span></div>
+      <section class="card list">
         ${S.team.map((m, i) => `
-          <div class="row" style="margin-bottom:6px">
-            <input class="input grow" data-team="${i}" data-k="name" value="${esc(m.name)}">
-            <input class="input grow" data-team="${i}" data-k="role" value="${esc(m.role)}">
-            <label class="small row" title="Include in daily brief"><input type="checkbox" data-teambrief="${i}" ${m.brief ? 'checked' : ''}>brief</label>
+          <div class="set-row team-edit">
+            ${avatar(m, 0, 36)}
+            <div class="grow"><input data-team="${i}" data-k="name" value="${esc(m.name)}"><input class="meta-in" data-team="${i}" data-k="role" value="${esc(m.role)}"></div>
+            <label class="switch" title="In daily brief"><input type="checkbox" data-teambrief="${i}" ${m.brief ? 'checked' : ''}><i></i></label>
           </div>`).join('')}
+        <div class="meta" style="padding:10px 4px 0">Switch = included in the daily brief.</div>
       </section>
 
+      <div class="section-label"><span>Backup</span></div>
       <section class="card">
-        <h3>Backup <small>your data never leaves this phone</small></h3>
-        <div class="row wrap">
-          <button class="btn" data-act="export">⬇️ Export backup</button>
-          <label class="btn">⬆️ Import<input type="file" accept="application/json" id="importFile" hidden></label>
-          <button class="btn warn" data-act="reset">Reset all</button>
+        <div class="row">
+          <button class="pill light grow" data-act="export">${ic('share', 16)} Export</button>
+          <label class="pill light grow">${ic('copy', 16)} Import<input type="file" accept="application/json" id="importFile" hidden></label>
         </div>
+        <button class="link danger" data-act="reset">Reset everything</button>
       </section>
 
-      <section class="card">
-        <h3>${NATIVE ? 'Reminders' : 'Install on your phone'}</h3>
-        ${NATIVE ? `<div class="small">You're on the Android app ✓ Reminders are real alarms and fire even when Pilot is closed. If they don't arrive, check Settings → Apps → Pilot → Notifications, and turn off battery optimisation for Pilot.<br><br><span class="muted">Fully offline. Pilot has no internet permission and can't read contacts, location, photos or files. Backup uses the share sheet; save it to Drive or WhatsApp yourself.</span></div>` : `<div class="small">
-          <b>Android (Chrome):</b> open the app link → ⋮ menu → <i>Install app</i> / <i>Add to Home screen</i>.<br>
-          <b>iPhone (Safari):</b> open the link → Share → <i>Add to Home Screen</i>. Open it from the icon, then tap 🔔 to allow reminders (iOS 16.4+).<br><br>
-          <span class="muted">Works fully offline. No sign-up, no AI credits, no access to contacts, location, photos or anything else on your phone. Reminders fire while the app is open or recently used — keep it pinned for best results.</span>
-        </div>`}
+      <section class="card note">
+        ${NATIVE
+          ? `<b>Reminders</b><p>Real alarms — they fire even when Pilot is closed. If they don't arrive: Settings → Apps → Pilot → Battery → Unrestricted.</p><p class="meta">Fully offline. No internet permission; can't read contacts, location, photos or files.</p>`
+          : `<b>Install on your phone</b><p>Android: ⋮ → Install app. iPhone: Share → Add to Home Screen, then tap the bell.</p><p class="meta">Works offline. No sign-up, no AI credits, no access to anything on your phone.</p>`}
       </section>`;
   }
 
   // ---------- Sheets ----------
   function sheet(html) {
-    closeSheet();
+    closeSheet(true);
     const bg = document.createElement('div');
     bg.className = 'sheet-bg'; bg.id = 'sheet';
-    bg.innerHTML = `<div class="sheet">${html}</div>`;
-    bg.addEventListener('click', (e) => { if (e.target === bg || e.target.dataset.close !== undefined) closeSheet(); });
+    bg.innerHTML = `<div class="sheet"><div class="grab"></div>${html}</div>`;
+    bg.addEventListener('click', (e) => { if (e.target === bg || e.target.closest('[data-close]')) closeSheet(); });
     document.body.appendChild(bg);
     return bg;
   }
-  function closeSheet() { const s = $('#sheet'); if (s) s.remove(); render(); }
+  function closeSheet(silent) { const s = $('#sheet'); if (s) s.remove(); if (!silent) render(); }
 
   function openBrief() {
     const msgs = S.team.filter((m) => m.brief).map((m) => ({ m, text: briefFor(m) }));
     const el = sheet(`
-      <h2>📨 Today's team brief</h2>
-      <div class="small muted">Copy or share each one to WhatsApp / Slack. Wajahat is excluded by default.</div>
+      <h2>Today's brief</h2>
+      <p class="meta">Copy or share each one to WhatsApp or Slack.</p>
       ${msgs.map(({ m, text }, i) => `
-        <div class="card" style="margin-top:10px">
-          <h3>${esc(m.name)} <small>${esc(m.role)}</small></h3>
-          ${text ? `<pre class="copy">${esc(text)}</pre><div class="row"><button class="btn sm" data-copy="${i}">Copy</button><button class="btn sm primary" data-share="${i}">Share</button></div>` : `<div class="small muted">No open tasks for ${esc(firstName(m.name))}. Add some in Team.</div>`}
+        <div class="brief">
+          <div class="item-row">${avatar(m, 0, 40)}<div class="grow"><div class="item-title sm">${esc(m.name)}</div><div class="meta">${esc(m.role)}</div></div></div>
+          ${text ? `<pre>${esc(text)}</pre><div class="row"><button class="pill light grow" data-copy="${i}">${ic('copy', 16)} Copy</button><button class="pill grad grow" data-share="${i}">${ic('share', 16)} Share</button></div>` : `<div class="empty">No open tasks for ${esc(firstName(m.name))}.</div>`}
         </div>`).join('')}
-      <button class="btn block" data-close>Close</button>`);
+      <button class="pill black block" data-close>Done</button>`);
     el.addEventListener('click', (e) => {
-      const c = e.target.dataset.copy, sh = e.target.dataset.share;
-      if (c !== undefined) copy(msgs[+c].text);
-      if (sh !== undefined) share(msgs[+sh].text);
+      const b = e.target.closest('[data-copy],[data-share]'); if (!b) return;
+      if (b.dataset.copy !== undefined) copy(msgs[+b.dataset.copy].text);
+      if (b.dataset.share !== undefined) share(msgs[+b.dataset.share].text);
+    });
+  }
+
+  function openPerson(id) {
+    const m = id === 'me' ? { id: 'me', name: 'Me', role: 'Your own tasks' } : S.team.find((x) => x.id === id);
+    if (!m) return;
+    const ts = openTasks(m.id);
+    const text = m.id === 'me' ? null : briefFor(m);
+    const el = sheet(`
+      <div class="item-row">${avatar(m, 0, 52)}<div class="grow"><h2 style="margin:0">${esc(m.name)}</h2><div class="meta">${esc(m.role)}</div></div></div>
+      <div class="row" style="margin:14px 0"><input class="soft grow" id="pTitle" placeholder="New task for ${esc(firstName(m.name))}"><button class="round black" id="pAdd" aria-label="Add">${ic('plus', 20)}</button></div>
+      ${ts.length ? ts.map(taskRow).join('') : '<div class="empty">No open tasks.</div>'}
+      ${text ? `<div class="row" style="margin-top:14px"><button class="pill light grow" id="pCopy">${ic('copy', 16)} Copy brief</button><button class="pill grad grow" id="pShare">${ic('share', 16)} Share</button></div>` : ''}`);
+    const add = () => {
+      const v = $('#pTitle', el).value.trim(); if (!v) return;
+      addTask({ title: v, ownerId: m.id }); toast('Added'); openPerson(id);
+    };
+    $('#pAdd', el).addEventListener('click', add);
+    $('#pTitle', el).addEventListener('keydown', (e) => { if (e.key === 'Enter') add(); });
+    if (text) { $('#pCopy', el).addEventListener('click', () => copy(text)); $('#pShare', el).addEventListener('click', () => share(text)); }
+    el.addEventListener('click', (e) => {
+      const b = e.target.closest('[data-act]'); if (!b) return;
+      const t = S.tasks.find((x) => x.id === +b.dataset.id);
+      if (b.dataset.act === 'adv' && t) { advance(t); if ($('#sheet')) openPerson(id); }
+      if (b.dataset.act === 'qa') openQA(b.dataset.id);
+      if (b.dataset.act === 'edit') openEdit(b.dataset.id);
     });
   }
 
@@ -758,28 +858,29 @@
     const t = S.tasks.find((x) => x.id === +id);
     if (!t) return;
     if (t.status === 'todo' || t.status === 'doing') { t.status = 'qa'; save(); }
+    const doneCount = () => QA_LIST.filter((_, i) => t.qa[i]).length;
     const el = sheet(`
-      <h2>🔍 QA · #${t.id} ${esc(t.title)}</h2>
-      <div class="small muted">${esc(owner(t.owner).name)}${t.client ? ' · ' + esc(t.client) : ''} — nothing goes to the client until every box is ticked.</div>
-      <div class="spacer"></div>
+      <h2>QA · ${esc(t.title)}</h2>
+      <p class="meta">${esc(owner(t.owner).name)}${t.client ? ' · ' + esc(t.client) : ''} · nothing goes to the client until every box is ticked.</p>
+      <div class="meter qa-meter"><i style="width:${(doneCount() / QA_LIST.length) * 100}%"></i></div>
       ${QA_LIST.map((q, i) => `<label class="qa-item"><input type="checkbox" data-qa="${i}" ${t.qa[i] ? 'checked' : ''}><span>${esc(q)}</span></label>`).join('')}
-      <div class="spacer"></div>
-      <label class="f">Feedback for ${esc(firstName(owner(t.owner).name))} (if anything failed)</label>
-      <textarea class="input" id="qaNote" placeholder="e.g. Mobile nav overlaps logo at 390px">${esc(t.qaNote || '')}</textarea>
-      <div class="spacer"></div>
+      <textarea class="soft" id="qaNote" placeholder="Feedback for ${esc(firstName(owner(t.owner).name))} (if anything failed)">${esc(t.qaNote || '')}</textarea>
       <div class="row">
-        <button class="btn grow" data-qaact="feedback">Copy feedback</button>
-        <button class="btn primary grow" data-qaact="pass">Passed → Ready</button>
+        <button class="pill light grow" data-qaact="feedback">${ic('copy', 16)} Copy feedback</button>
+        <button class="pill grad grow" data-qaact="pass">${ic('check', 16)} Passed</button>
       </div>`);
-    el.addEventListener('change', (e) => { if (e.target.dataset.qa !== undefined) { t.qa[e.target.dataset.qa] = e.target.checked; save(); } });
+    el.addEventListener('change', (e) => {
+      if (e.target.dataset.qa === undefined) return;
+      t.qa[e.target.dataset.qa] = e.target.checked; save();
+      $('.qa-meter i', el).style.width = (doneCount() / QA_LIST.length) * 100 + '%';
+    });
     el.addEventListener('input', (e) => { if (e.target.id === 'qaNote') { t.qaNote = e.target.value; save(); } });
     el.addEventListener('click', (e) => {
-      const a = e.target.dataset.qaact;
-      if (a === 'pass') {
-        if (!qaPassed(t)) { toast(`${QA_LIST.filter((_, i) => !t.qa[i]).length} checks left`); return; }
-        t.status = 'ready'; save(); toast('Ready for client ✅'); closeSheet();
-      }
-      if (a === 'feedback') {
+      const b = e.target.closest('[data-qaact]'); if (!b) return;
+      if (b.dataset.qaact === 'pass') {
+        if (!qaPassed(t)) { toast(`${QA_LIST.length - doneCount()} checks left`); return; }
+        t.status = 'ready'; save(); toast('Ready for client'); closeSheet();
+      } else {
         const failed = QA_LIST.filter((_, i) => !t.qa[i]);
         copy(`QA feedback — ${t.title}${t.client ? ' (' + t.client + ')' : ''}\n\n${t.qaNote ? t.qaNote + '\n\n' : ''}Still to fix/check:\n${failed.map((f) => '• ' + f).join('\n')}\n\nPlease fix and send back for QA.`);
         t.status = 'doing'; save();
@@ -790,38 +891,38 @@
   function openEdit(id) {
     const t = id ? S.tasks.find((x) => x.id === +id) : null;
     const el = sheet(`
-      <h2>${t ? 'Edit task #' + t.id : 'New task for me'}</h2>
-      <label class="f">Task</label><input class="input" id="eTitle" value="${esc(t ? t.title : '')}">
-      <label class="f">Owner</label>
-      <select class="input" id="eOwner"><option value="me">Me</option>${S.team.map((m) => `<option value="${m.id}" ${t && t.owner === m.id ? 'selected' : ''}>${esc(m.name)}</option>`).join('')}</select>
-      <label class="f">Client</label><input class="input" id="eClient" value="${esc(t ? t.client : '')}">
-      <label class="f">Status</label>
-      <select class="input" id="eStatus">${STATUSES.map((s) => `<option value="${s}" ${t && t.status === s ? 'selected' : ''}>${STATUS_LABEL[s]}</option>`).join('')}</select>
-      <label class="f">Priority</label>
-      <select class="input" id="ePrio"><option value="normal">Normal</option><option value="high" ${t && t.priority === 'high' ? 'selected' : ''}>🔴 Urgent</option></select>
-      <div class="spacer"></div>
-      <button class="btn primary block" id="eSave">Save</button>`);
+      <h2>${t ? 'Edit task' : 'New task'}</h2>
+      <input class="soft" id="eTitle" placeholder="Task" value="${esc(t ? t.title : '')}">
+      <div class="set-row"><span>Owner</span><select id="eOwner"><option value="me">Me</option>${S.team.map((m) => `<option value="${m.id}" ${t && t.owner === m.id ? 'selected' : ''}>${esc(m.name)}</option>`).join('')}</select></div>
+      <div class="set-row"><span>Client</span><input id="eClient" list="clientList2" value="${esc(t ? t.client : '')}"><datalist id="clientList2">${S.clients.map((c) => `<option value="${esc(c.name)}">`).join('')}</datalist></div>
+      <div class="set-row"><span>Status</span><select id="eStatus">${STATUSES.map((s) => `<option value="${s}" ${t && t.status === s ? 'selected' : ''}>${STATUS_LABEL[s]}</option>`).join('')}</select></div>
+      <div class="set-row"><span>Priority</span><select id="ePrio"><option value="normal">Normal</option><option value="high" ${t && t.priority === 'high' ? 'selected' : ''}>Urgent</option></select></div>
+      <div class="row" style="margin-top:14px">
+        ${t ? `<button class="pill light" id="eDel">Delete</button>` : ''}
+        <button class="pill black grow" id="eSave">Save</button>
+      </div>`);
     $('#eSave', el).addEventListener('click', () => {
       const title = $('#eTitle', el).value.trim();
       if (!title) return toast('Give it a name');
       const data = { title, owner: $('#eOwner', el).value, client: $('#eClient', el).value.trim(), priority: $('#ePrio', el).value };
       let status = $('#eStatus', el).value;
       if (t) {
-        if ((status === 'ready' || status === 'sent') && !qaPassed(t) && t.owner !== 'me') { status = 'qa'; toast('QA first — moved to Needs QA'); }
+        if ((status === 'ready' || status === 'sent') && !qaPassed(t) && data.owner !== 'me') { status = 'qa'; toast('QA first — moved to Needs QA'); }
         Object.assign(t, data, { status });
       } else addTask({ ...data, ownerId: data.owner });
       if (data.client) ensureClient(data.client);
       save(); closeSheet();
     });
+    if (t) $('#eDel', el).addEventListener('click', () => { if (confirm('Delete this task?')) { S.tasks = S.tasks.filter((x) => x !== t); save(); closeSheet(); } });
   }
 
   // ---------- Render & events ----------
   function render() {
     renderHeader();
-    const v = $('#view');
-    v.innerHTML = { today: viewToday, team: viewTeam, bot: viewBot, health: viewHealth, more: viewMore }[tab]();
-    document.querySelectorAll('.tabs button').forEach((b) => b.classList.toggle('active', b.dataset.tab === tab));
-    if (tab === 'bot') { const c = $('#chat'); window.scrollTo(0, document.body.scrollHeight); c && c.lastElementChild && c.lastElementChild.scrollIntoView(); }
+    renderNav();
+    document.body.dataset.tab = tab;
+    $('#view').innerHTML = { today: viewToday, team: viewTeam, bot: viewBot, health: viewHealth, more: viewMore }[tab]();
+    if (tab === 'bot') window.scrollTo(0, document.body.scrollHeight);
   }
 
   function say(text) {
@@ -839,10 +940,9 @@
 
   const view = $('#view');
   view.addEventListener('click', (e) => {
-    const el = e.target.closest('[data-act],[data-filter],[data-say],[data-glass],[data-wd]');
+    const el = e.target.closest('[data-act],[data-say],[data-glass],[data-wd]');
     if (!el) return;
     const d = day();
-    if (el.dataset.filter) { teamFilter = el.dataset.filter; return render(); }
     if (el.dataset.say) return say(el.dataset.say);
     if (el.dataset.glass !== undefined) { const i = +el.dataset.glass; d.water = d.water === i + 1 ? i : i + 1; save(); return render(); }
     if (el.dataset.wd !== undefined) {
@@ -852,7 +952,14 @@
     const id = el.dataset.id;
     const t = id ? S.tasks.find((x) => x.id === +id) : null;
     switch (el.dataset.act) {
-      case 'water': d.water++; save(); toast(`💧 ${d.water}/${S.settings.waterGoal}`); break;
+      case 'water': d.water++; save(); toast(`Water ${d.water}/${S.settings.waterGoal}`); break;
+      case 'checkCur': { const c = currentBlock().cur; if (c) { d.checks[c.id] = !d.checks[c.id]; save(); } break; }
+      case 'toggleBlock': d.checks[id] = !d.checks[id]; save(); break;
+      case 'fullday': showAllDay = !showAllDay; break;
+      case 'notion': d.notion[id] = !d.notion[id]; save(); break;
+      case 'person': return openPerson(id);
+      case 'owner': addOwner = id; { const v = $('#tTitle').value, c = $('#tClient').value; render(); $('#tTitle').value = v; $('#tClient').value = c; } return;
+      case 'urgent': addUrgent = !addUrgent; el.classList.toggle('active', addUrgent); el.classList.toggle('red', addUrgent); return;
       case 'focus': if (S.timer) S.timer = null; else startTimer('focus'); save(); break;
       case 'break': startTimer('break'); break;
       case 'cig': d.cigs.push(Date.now()); save(); toast(cigText(true).split('\n')[0]); break;
@@ -870,8 +977,9 @@
         if (!title) return toast('Write the task first');
         const client = $('#tClient').value.trim();
         if (client) ensureClient(client);
-        const nt = addTask({ title, ownerId: $('#tOwner').value, client, priority: $('#tPrio').value });
-        toast(`Added #${nt.id} for ${owner(nt.owner).name}`);
+        const nt = addTask({ title, ownerId: addOwner, client, priority: addUrgent ? 'high' : 'normal' });
+        addUrgent = false;
+        toast(`Added for ${owner(nt.owner).name}`);
         break;
       }
       case 'addClient': { const n = $('#newClient').value.trim(); if (n) ensureClient(n); break; }
@@ -896,9 +1004,7 @@
 
   view.addEventListener('change', (e) => {
     const el = e.target, d = day();
-    if (el.dataset.check) { d.checks[el.dataset.check] = el.checked; save(); render(); }
-    else if (el.dataset.notion) { d.notion[el.dataset.notion] = el.checked; save(); render(); }
-    else if (el.dataset.set) {
+    if (el.dataset.set) {
       const k = el.dataset.set;
       S.settings[k] = el.type === 'number' ? Math.max(0, +el.value || 0) : el.value; save(); toast('Saved');
     }
@@ -920,7 +1026,7 @@
     if (el.dataset.top !== undefined) { d.top3 = d.top3 || []; d.top3[+el.dataset.top] = el.value; save(); }
     if (el.dataset.meet) { const m = S.meetings.find((x) => x.id === +el.dataset.meet); if (m) { m.notes = el.value; save(); } }
     if (el.id === 'tTitle') {
-      const v = el.value.toLowerCase(), o = $('#tOwner').value, h = $('#hint');
+      const v = el.value.toLowerCase(), o = addOwner, h = $('#hint');
       let msg = '';
       if (/framer/.test(v) && o === 'ahmad') msg = '⚠️ Ahmad doesn\'t do Framer — Mridul (senior) or Agha (junior)?';
       else if (/(wordpress|\bwp\b|php|custom code|backend|woocommerce)/.test(v) && o !== 'ahmad') msg = '💡 Sounds like Ahmad\'s area.';
@@ -955,6 +1061,11 @@
   render();
   tick();
   setInterval(tick, 20e3);
-  setInterval(() => { const el = $('#timerText'); if (el && S.timer) el.textContent = timerText(); }, 1000);
+  setInterval(() => {
+    if (!S.timer) return;
+    const a = $('#timerText'), b = $('#timerBig');
+    if (a) a.textContent = timerText();
+    if (b) b.textContent = clockLeft();
+  }, 1000);
   document.addEventListener('visibilitychange', () => { if (!document.hidden) { tick(); if (tab !== 'bot' && !$('#sheet')) render(); } });
 })();

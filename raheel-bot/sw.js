@@ -1,8 +1,8 @@
 // Offline cache: the whole app works with no internet after the first load.
-const CACHE = 'pilot-v1';
+const CACHE = 'pilot-v2';
 const ASSETS = [
   './', './index.html', './styles.css', './app.js', './manifest.webmanifest',
-  './icons/icon.svg', './icons/icon-192.png', './icons/icon-512.png'
+  './fonts/inter-tight.woff2', './icons/icon.svg', './icons/icon-192.png', './icons/icon-512.png'
 ];
 
 self.addEventListener('install', (e) => {

@@ -6,6 +6,7 @@ import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.view.View;
 import android.webkit.JavascriptInterface;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
@@ -22,11 +23,15 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        getWindow().setStatusBarColor(Color.parseColor("#0f1115"));
-        getWindow().setNavigationBarColor(Color.parseColor("#0f1115"));
+        // Light theme: pale bars with dark icons (0x10 = SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR, API 26).
+        getWindow().setStatusBarColor(Color.parseColor("#e5eee9"));
+        getWindow().setNavigationBarColor(Color.parseColor("#f8efe3"));
+        int ui = View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
+        if (Build.VERSION.SDK_INT >= 26) ui |= 0x10;
+        getWindow().getDecorView().setSystemUiVisibility(ui);
 
         web = new WebView(this);
-        web.setBackgroundColor(Color.parseColor("#0f1115"));
+        web.setBackgroundColor(Color.parseColor("#f4f1ea"));
         WebSettings s = web.getSettings();
         s.setJavaScriptEnabled(true);
         s.setDomStorageEnabled(true);
